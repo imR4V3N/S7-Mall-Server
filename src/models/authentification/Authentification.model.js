@@ -32,7 +32,6 @@ const authentificationSchema = new mongoose.Schema(
     }
 );
 
-// changement: utiliser un middleware async sans paramètre "next" — appeler next() provoquait "next is not a function" quand Mongoose traite le hook comme basé sur les promesses
 authentificationSchema.pre("save", async function() {
     if (this.isModified("mdp")) {
         const salt = await bcrypt.genSalt(10);
