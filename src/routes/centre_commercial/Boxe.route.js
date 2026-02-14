@@ -7,6 +7,6 @@ router.get("/", boxeController.getAllBoxe);
 router.get("/:id", boxeController.getBoxeById);
 router.put("/:id", boxeController.updateBoxe);
 router.delete("/:id", boxeController.deleteBoxe);
-router.get("/:idCentreCommercial", boxeController.getBoxeByCentre);
+router.get("/centre/:idCentreCommercial", boxeController.getBoxeByCentre);
 
 module.exports = router;

@@ -68,7 +68,9 @@ exports.getBoxeByCentre = async (req, res) => {
                     _id: 1,
                     nom: 1,
                     description: 1,
-                    isDisponible: 1,
+                    status: 1,
+                    longueur: 1,
+                    largeur: 1,
                     centre: { nomCentreCommercial: "$centre.nom", adresseCentreCommercial: "$centre.adresse" }
                 }
             }

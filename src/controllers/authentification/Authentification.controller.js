@@ -84,7 +84,7 @@ exports.loginWithRole = async (req, res) => {
             }
         ]);
 
-        res.json(result); // résultat unique
+        res.json(result[0]); // résultat unique
 
     } catch (err) {
         res.status(500).json({ error: err.message });

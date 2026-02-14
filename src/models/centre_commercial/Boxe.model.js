@@ -12,15 +12,24 @@ const boxeSchema = new mongoose.Schema(
         },
         nom: {
             type: String,
+            unique: true,
             required: true,
             trim: true
         },
         description: {
             type: String
         },
-        isDisponible: {
-            type: Boolean,
-            default: true
+        status: {
+            type: Number,
+            default: 1
+        },
+        longueur:{
+            type: Number,
+            default:0
+        },
+        largeur:{
+            type: Number,
+            default:0
         }
     },
     {
