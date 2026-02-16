@@ -12,6 +12,8 @@ const proprietaireRoutes = require('./routes/proprietaire/Proprietaire.route');
 const {getAuthParams} = require("./controllers/Upload.controller");
 const fileTypeRoutes = require('./routes/fichier/FileType.route');
 const fileRoutes = require('./routes/fichier/File.route');
+const demandeLocationRoutes = require('./routes/proprietaire/DemandeLocation.route');
+const boutiqueRoutes = require('./routes/proprietaire/Boutique.route');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -27,6 +29,8 @@ app.use("/api/proprietaire",proprietaireRoutes);
 app.get('/api/imagekit/auth', getAuthParams);
 app.use("/api/filetype", fileTypeRoutes);
 app.use("/api/file", fileRoutes);
+app.use("/api/demande", demandeLocationRoutes);
+app.use("/api/boutique", boutiqueRoutes);
 // Connexion à MongoDB
 connectDB();
 

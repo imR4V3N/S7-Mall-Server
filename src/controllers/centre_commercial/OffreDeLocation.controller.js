@@ -1,12 +1,13 @@
 const OffreDeLocation = require("../../models/centre_commercial/OffreDeLocation.model");
 const Boxe = require("../../models/centre_commercial/Boxe.model");
 const {ConstanteEtat} = require("../../config/constante");
+const mongoose = require("mongoose");
 exports.create = async (req, res) => {
     try {
         const item = new OffreDeLocation(req.body);
         await item.save();
         const boxe = await Boxe.findById(item.idBoxe);
-        boxe.status = 2; // 2 = "en location"
+        boxe.status = ConstanteEtat.EN_ATTENTE;
         await boxe.save();
         res.status(201).json(item);
     } catch (err) {
@@ -96,6 +97,31 @@ exports.getOffresByCentre = async (req, res) => {
                 $unwind: "$centreInfo"
             },
             {
+                $lookup: {
+                    from: "file",
+                    let: { boxeId: "$boxeInfo._id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$idProprietaire", "$$boxeId"] },
+                                idType: new mongoose.Types.ObjectId("69907176993485024f2c116d")
+                            }
+                        },
+                        { $sort: { date: -1 } }, // 👈 TRI PAR DATE DÉCROISSANTE (plus récent d'abord)
+                        { $limit: 1 } // 👈 PRENDRE SEULEMENT LA PREMIÈRE (la plus récente)
+                    ],
+                    as: "photoPrincipale"
+                }
+            },
+            {
+                $lookup: {
+                    from: "file",
+                    localField: "boxeInfo._id",
+                    foreignField: "idProprietaire",
+                    as: "toutesLesPhotos"
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     description: 1,
@@ -107,7 +133,11 @@ exports.getOffresByCentre = async (req, res) => {
                     longueurBoxe: "$boxeInfo.longueur",
                     largeurBoxe: "$boxeInfo.largeur",
                     idCentreCommercial: "$centreInfo._id",
-                    nomCentreCommercial: "$centreInfo.nom"
+                    nomCentreCommercial: "$centreInfo.nom",
+                    photoBoxe: {
+                        $arrayElemAt: ["$photoPrincipale", 0]
+                    },
+                    autrePhoto: "$toutesLesPhotos",
                 }
             }
         ]);
@@ -152,6 +182,31 @@ exports.getOffresCpl = async (req, res) => {
                 $unwind: "$centreInfo"
             },
             {
+                $lookup: {
+                    from: "file",
+                    let: { boxeId: "$boxeInfo._id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$idProprietaire", "$$boxeId"] },
+                                idType: new mongoose.Types.ObjectId("69907176993485024f2c116d")
+                            }
+                        },
+                        { $sort: { date: -1 } }, // 👈 TRI PAR DATE DÉCROISSANTE (plus récent d'abord)
+                        { $limit: 1 } // 👈 PRENDRE SEULEMENT LA PREMIÈRE (la plus récente)
+                    ],
+                    as: "photoPrincipale"
+                }
+            },
+            {
+                $lookup: {
+                    from: "file",
+                    localField: "boxeInfo._id",
+                    foreignField: "idProprietaire",
+                    as: "toutesLesPhotos"
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     description: 1,
@@ -163,7 +218,11 @@ exports.getOffresCpl = async (req, res) => {
                     longueurBoxe: "$boxeInfo.longueur",
                     largeurBoxe: "$boxeInfo.largeur",
                     idCentreCommercial: "$centreInfo._id",
-                    nomCentreCommercial: "$centreInfo.nom"
+                    nomCentreCommercial: "$centreInfo.nom",
+                    photoBoxe: {
+                        $arrayElemAt: ["$photoPrincipale", 0]
+                    },
+                    autrePhoto: "$toutesLesPhotos",
                 }
             }
         ]);
@@ -238,7 +297,7 @@ exports.getOffresDisponible = async (req, res) => {
         const result = await OffreDeLocation.aggregate([
             {
                 $match: {
-                    "status":status
+                    "status": status
                 }
             },
             {
@@ -249,9 +308,7 @@ exports.getOffresDisponible = async (req, res) => {
                     as: "boxeInfo"
                 }
             },
-            {
-                $unwind: "$boxeInfo"
-            },
+            { $unwind: "$boxeInfo" },
             {
                 $lookup: {
                     from: "centre_commercial",
@@ -260,8 +317,31 @@ exports.getOffresDisponible = async (req, res) => {
                     as: "centreInfo"
                 }
             },
+            { $unwind: "$centreInfo" },
             {
-                $unwind: "$centreInfo"
+                $lookup: {
+                    from: "file",
+                    let: { boxeId: "$boxeInfo._id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$idProprietaire", "$$boxeId"] },
+                                idType: new mongoose.Types.ObjectId("69907176993485024f2c116d")
+                            }
+                        },
+                        { $sort: { date: -1 } }, // 👈 TRI PAR DATE DÉCROISSANTE (plus récent d'abord)
+                        { $limit: 1 } // 👈 PRENDRE SEULEMENT LA PREMIÈRE (la plus récente)
+                    ],
+                    as: "photoPrincipale"
+                }
+            },
+            {
+                $lookup: {
+                    from: "file",
+                    localField: "boxeInfo._id",
+                    foreignField: "idProprietaire",
+                    as: "toutesLesPhotos"
+                }
             },
             {
                 $project: {
@@ -275,7 +355,13 @@ exports.getOffresDisponible = async (req, res) => {
                     longueurBoxe: "$boxeInfo.longueur",
                     largeurBoxe: "$boxeInfo.largeur",
                     idCentreCommercial: "$centreInfo._id",
-                    nomCentreCommercial: "$centreInfo.nom"
+                    nomCentreCommercial: "$centreInfo.nom",
+                    // Photo principale (la plus récente avec le bon idType)
+                    photoBoxe: {
+                        $arrayElemAt: ["$photoPrincipale", 0]
+                    },
+                    // Informations complètes de la photo principale (optionnel)
+                    autrePhoto: "$toutesLesPhotos",
                 }
             }
         ]);
