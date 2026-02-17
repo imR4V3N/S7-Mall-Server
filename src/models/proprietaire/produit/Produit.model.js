@@ -12,7 +12,8 @@ const produitSchema = new mongoose.Schema(
             required: true
         },
         idCategorie: {
-            type: String,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Categorie",
             required: true
         },
         nom: {
@@ -34,6 +35,10 @@ const produitSchema = new mongoose.Schema(
             required: true,
             min: 0,
             default: 0
+        },
+        status: {
+            type:Number,
+            default:1
         }
     },
     {

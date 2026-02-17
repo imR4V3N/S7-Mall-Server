@@ -14,6 +14,13 @@ const fileTypeRoutes = require('./routes/fichier/FileType.route');
 const fileRoutes = require('./routes/fichier/File.route');
 const demandeLocationRoutes = require('./routes/proprietaire/DemandeLocation.route');
 const boutiqueRoutes = require('./routes/proprietaire/Boutique.route');
+const categorieRoutes = require('./routes/proprietaire/produit/Categorie.route');
+const produitRoutes = require('./routes/proprietaire/produit/Produit.route');
+const stockRoutes = require('./routes/proprietaire/stock/Stock.route');
+const clientRoutes = require('./routes/client/Client.route');
+const venteRoutes = require('./routes/proprietaire/vente/Vente.route');
+const caisseRoutes = require('./routes/caisse/Caisse.route');
+const mouvementCaisseRoutes = require('./routes/caisse/MouvementCaisse.route');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
@@ -31,6 +38,13 @@ app.use("/api/filetype", fileTypeRoutes);
 app.use("/api/file", fileRoutes);
 app.use("/api/demande", demandeLocationRoutes);
 app.use("/api/boutique", boutiqueRoutes);
+app.use("/api/categorie", categorieRoutes);
+app.use("/api/produit", produitRoutes);
+app.use("/api/stock", stockRoutes);
+app.use("/api/client", clientRoutes);
+app.use("/api/vente", venteRoutes);
+app.use("/api/caisse", caisseRoutes);
+app.use("/api/mouvement_caisse", mouvementCaisseRoutes);
 // Connexion à MongoDB
 connectDB();
 

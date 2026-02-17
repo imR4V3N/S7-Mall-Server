@@ -5,4 +5,9 @@ export class ConstanteEtat {
     static VALIDER = 11;
     static ANNULER = 21;
     static REJETER = 31;
+
+    static idTypeMvtStock = {
+        ENTRER: "Entrer",
+        SORTIE: "Sortie"
+    }
 }
