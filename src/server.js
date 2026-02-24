@@ -32,16 +32,42 @@ const locationBoxeRoutes = require('./routes/proprietaire/LocationBoxe.route');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-// const corsOptions = {
-//   origin: '*',
-//   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
-//   allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
-//   credentials: false,
-//   optionsSuccessStatus: 200
-// };
+const corsOptions = {
+  origin: function (origin, callback) {
+    // Liste des origines autorisées
+    const allowedOrigins = [
+      'http://localhost:4200',
+      'http://localhost:3000',
+      'https://s7-mall-client-v2.vercel.app', // Mettez votre frontend URL
+      'https://s7-mall-management-server.vercel.app'
+    ];
+    
+    // Permettre les requêtes sans origin (comme les appels server-to-server)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || process.env.NODE_ENV === 'development') {
+      callback(null, true);
+    } else {
+      console.log('Origin bloquée:', origin);
+      callback(new Error('Non autorisé par CORS'));
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  credentials: true, // Maintenant c'est cohérent avec allowedOrigins spécifiques
+  optionsSuccessStatus: 200,
+  preflightContinue: false
+};
 
-// app.use(cors(corsOptions));
-// app.options(/.*/, cors(corsOptions)); // Preflight pour toutes les routes (Express 5)
+// Appliquer CORS à toutes les routes
+app.use(cors(corsOptions));
+
+// Middleware pour logger les requêtes (debug)
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin}`);
+  next();
+});
+
 
 // Middleware
 app.use(express.json());
@@ -71,6 +97,16 @@ app.use("/api/manager", managerRoutes);
 app.use("/api/payment_loyer", paymentLoyerRoutes);
 app.use("/api/follower", followerRoutes);
 app.use("/api/location_boxe", locationBoxeRoutes);
+
+// Middleware pour gérer les erreurs CORS
+app.use((err, req, res, next) => {
+  if (err.message === 'Non autorisé par CORS') {
+    res.status(403).json({ error: 'CORS non autorisé' });
+  } else {
+    next(err);
+  }
+});
+
 // Connexion à MongoDB
 connectDB();
 
