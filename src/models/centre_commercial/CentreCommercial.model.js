@@ -52,7 +52,13 @@ centreCommercialSchema.pre("save", async function() {
     }
 });
 
-module.exports = mongoose.model(
-    "CentreCommercial",
-    centreCommercialSchema
-);
+// module.exports = mongoose.model(
+//     "CentreCommercial",
+//     centreCommercialSchema
+// );
+
+// Vérifier si le modèle existe déjà avant de le créer
+const CentreCommercial = mongoose.models.CentreCommercial
+    || mongoose.model('CentreCommercial', centreCommercialSchema);
+
+module.exports = CentreCommercial;

@@ -49,3 +49,29 @@ exports.getById = async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 };
+
+exports.update = async (req, res) => {
+    try {
+        const { identifiant, mdp, ...itemData } = req.body;
+        let auth = await Authentification.findOne({ idUser: req.params.id });
+        if (identifiant && auth.identifiant!==identifiant) {
+            const old_auth = await Authentification.find({ identifiant:identifiant });
+            if (old_auth && old_auth.length > 0) {
+                return res.status(400).json({ message: "Identifiant invalide" });
+            }
+        }
+        if (identifiant) {
+            auth.identifiant = identifiant;
+        }
+        if (mdp && mdp.trim() !== "") {
+            auth.mdp = mdp; // sera hashé automatiquement par le hook 'pre save'
+        }
+        await auth.save();
+
+        const item = await Proprietaire.findByIdAndUpdate(req.params.id, itemData, { new: true });
+        if (!item) return res.status(404).json({ message: "Item introuvable" });
+        res.json(item);
+    } catch (err) {
+        res.status(400).json({ message: err.message });
+    }
+};

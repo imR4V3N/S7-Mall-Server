@@ -52,6 +52,134 @@ exports.delete = async (req, res) => {
     }
 };
 
+exports.getBoutiqueCPLByIdV2 = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const result = await Boutique.aggregate([
+            {
+                $match: {
+                    _id: id
+                }
+            },
+            {
+                $lookup: {
+                    from: "proprietaire",
+                    localField: "idProprietaire",
+                    foreignField: "_id",
+                    as: "proprietaireInfo"
+                }
+            },
+            {
+                $unwind: "$proprietaireInfo"
+            },
+            {
+                $lookup: {
+                    from: "boxe",
+                    localField: "idBoxe",
+                    foreignField: "_id",
+                    as: "boxeInfo"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$boxeInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
+            },
+            {
+                $lookup: {
+                    from: "centre_commercial",
+                    localField: "boxeInfo.idCentreCommercial",
+                    foreignField: "_id",
+                    as: "centreInfo"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$centreInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
+            },
+            {
+                $lookup: {
+                    from: "file",
+                    let: { produitId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$idProprietaire", "$$produitId"] },
+                                idType: new mongoose.Types.ObjectId("69907176993485024f2c116d")
+                            }
+                        },
+                        { $sort: { date: -1 } }, // 👈 TRI PAR DATE DÉCROISSANTE (plus récent d'abord)
+                        { $limit: 1 } // 👈 PRENDRE SEULEMENT LA PREMIÈRE (la plus récente)
+                    ],
+                    as: "photoPrincipale"
+                }
+            },
+            {
+                $lookup: {
+                    from: "file",
+                    let: { produitId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: { $eq: ["$idProprietaire", "$$produitId"] },
+                                idType: new mongoose.Types.ObjectId("699ad50b95739c29a87d14f9")
+                            }
+                        },
+                        { $sort: { date: -1 } }, // 👈 TRI PAR DATE DÉCROISSANTE (plus récent d'abord)
+                        { $limit: 1 } // 👈 PRENDRE SEULEMENT LA PREMIÈRE (la plus récente)
+                    ],
+                    as: "photoCouverture"
+                }
+            },
+            {
+                $lookup: {
+                    from: "followers",
+                    localField: "_id",
+                    foreignField: "idUser",
+                    as: "followerListe"
+                }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    idDemandeLocation: 1,
+                    idBoxe: 1,
+                    idProprietaire: 1,
+                    nom: 1,
+                    description: 1,
+                    heure_ouverture: 1,
+                    heure_fermeture: 1,
+                    contact: 1,
+                    email: 1,
+                    status: 1,
+                    date:1,
+                    proprietaire:"$proprietaireInfo",
+                    boxe:"$boxeInfo",
+                    centreCommercial:"$centreInfo",
+                    pdp: {
+                        $arrayElemAt: ["$photoPrincipale", 0]
+                    },
+                    pdc: {
+                        $arrayElemAt: ["$photoCouverture", 0]
+                    },
+                    followers: "$followerListe"
+                }
+            }
+        ]);
+        if (result.length==0){
+            res.status(404).json({message:"Item introuvable"})
+        }
+        res.json(result[0]);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
 exports.getBoutiqueCPLById = async (req, res) => {
     try {
         const { id } = req.params;
@@ -82,7 +210,10 @@ exports.getBoutiqueCPLById = async (req, res) => {
                 }
             },
             {
-                $unwind: "$boxeInfo"
+                $unwind: {
+                    path: "$boxeInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $lookup: {
@@ -93,7 +224,10 @@ exports.getBoutiqueCPLById = async (req, res) => {
                 }
             },
             {
-                $unwind: "$centreInfo"
+                $unwind: {
+                    path: "$centreInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $lookup: {
@@ -204,7 +338,10 @@ exports.getBoutiqueByIdProprietaire = async (req, res) => {
                 }
             },
             {
-                $unwind: "$boxeInfo"
+                $unwind: {
+                    path: "$boxeInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $lookup: {
@@ -215,7 +352,10 @@ exports.getBoutiqueByIdProprietaire = async (req, res) => {
                 }
             },
             {
-                $unwind: "$centreInfo"
+                $unwind: {
+                    path: "$centreInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $project: {

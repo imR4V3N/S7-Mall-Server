@@ -9,11 +9,9 @@ const boutiqueSchema = new mongoose.Schema(
         },
         idDemandeLocation: {
             type: String,
-            required: true
         },
         idBoxe: {
             type: String,
-            required: true
         },
         idProprietaire: {
             type: String,

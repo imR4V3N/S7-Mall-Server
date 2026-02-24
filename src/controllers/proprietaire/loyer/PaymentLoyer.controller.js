@@ -4,15 +4,18 @@ const {ConstanteEtat} = require("../../../config/constante");
 const BonDeCommande = require("../../../models/client/commande/BonDeCommande.model");
 const Boutique = require("../../../models/proprietaire/Boutique.model");
 const Notification = require("../../../models/notification/Notification.model");
+const LocationBoxe = require("../../../models/proprietaire/LocationBoxe.model");
+const Boxe = require("../../../models/centre_commercial/Boxe.model");
 exports.create = async (req, res) => {
     try {
         const item = new PaymentLoyer(req.body);
         await item.save();
-        const boutique = await Boutique.findById(item.idBoutique);
+        const location = await LocationBoxe.findById(item.idBoutique);
+        const boxe = await Boxe.findById(location.idBoxe);
         const notification = new Notification({
             idUser: item.idCentreCommercial,
             title: "Nouveau paiement de loyer",
-            message: `Le locataire de la boutique ${boutique.nom} a effectué un paiement de loyer pour le mois de ${item.mois}. Veuillez vérifier et valider le paiement.`,
+            message: `Le locataire de la boxe ${boxe.nom} a effectué un paiement de loyer pour le mois de ${item.mois}. Veuillez vérifier et valider le paiement.`,
             lien: `owner/payment_loyer/details/${item._id}`,
             badge: "<div class=\"notification-icon\" style=\"background-color: #dbeafe;color: #3b82f6;\">\n" +
                 "                    <i class=\"fa fa-info-circle\"></i>\n" +
@@ -78,14 +81,44 @@ exports.getCplById = async (req, res) => {
             },
             {
                 $lookup: {
-                    from: "boutique",
+                    from: "location_boxe",
                     localField: "idBoutique",
                     foreignField: "_id",
-                    as: "boutiqueInfo"
+                    as: "locationInfo"
                 }
             },
             {
-                $unwind: "$boutiqueInfo"
+                $unwind: "$locationInfo"
+            },
+            {
+                $lookup: {
+                    from: "boxe",
+                    localField: "locationInfo.idBoxe",
+                    foreignField: "_id",
+                    as: "boxeInfo"
+                }
+            },
+            {
+                $unwind: "$boxeInfo"
+            },
+            {
+                $lookup: {
+                    from: "proprietaire",
+                    localField: "locationInfo.idProprietaire",
+                    foreignField: "_id",
+                    as: "proprietaireInfo"
+                }
+            },
+            {
+                $unwind: "$proprietaireInfo"
+            },
+            {
+                $lookup: {
+                    from: "boutique",
+                    localField: "locationInfo.idBoutique",
+                    foreignField: "_id",
+                    as: "boutiqueInfo"
+                }
             },
             {
                 $project: {
@@ -97,6 +130,9 @@ exports.getCplById = async (req, res) => {
                     montant: 1,
                     status:1,
                     date: 1,
+                    location:"$locationInfo",
+                    boxe:"$boxeInfo",
+                    proprietaire:"$proprietaireInfo",
                     boutique:"$boutiqueInfo",
                     centreCommercial:"$centreInfo"
                 }
@@ -133,14 +169,44 @@ exports.getCplByIdCentreCommercial = async (req, res) => {
             },
             {
                 $lookup: {
-                    from: "boutique",
+                    from: "location_boxe",
                     localField: "idBoutique",
                     foreignField: "_id",
-                    as: "boutiqueInfo"
+                    as: "locationInfo"
                 }
             },
             {
-                $unwind: "$boutiqueInfo"
+                $unwind: "$locationInfo"
+            },
+            {
+                $lookup: {
+                    from: "boxe",
+                    localField: "locationInfo.idBoxe",
+                    foreignField: "_id",
+                    as: "boxeInfo"
+                }
+            },
+            {
+                $unwind: "$boxeInfo"
+            },
+            {
+                $lookup: {
+                    from: "proprietaire",
+                    localField: "locationInfo.idProprietaire",
+                    foreignField: "_id",
+                    as: "proprietaireInfo"
+                }
+            },
+            {
+                $unwind: "$proprietaireInfo"
+            },
+            {
+                $lookup: {
+                    from: "boutique",
+                    localField: "locationInfo.idBoutique",
+                    foreignField: "_id",
+                    as: "boutiqueInfo"
+                }
             },
             {
                 $project: {
@@ -152,6 +218,9 @@ exports.getCplByIdCentreCommercial = async (req, res) => {
                     montant: 1,
                     status:1,
                     date: 1,
+                    location:"$locationInfo",
+                    boxe:"$boxeInfo",
+                    proprietaire:"$proprietaireInfo",
                     boutique:"$boutiqueInfo",
                     centreCommercial:"$centreInfo"
                 }
@@ -188,14 +257,44 @@ exports.getCplByIdBoutique = async (req, res) => {
             },
             {
                 $lookup: {
-                    from: "boutique",
+                    from: "location_boxe",
                     localField: "idBoutique",
                     foreignField: "_id",
-                    as: "boutiqueInfo"
+                    as: "locationInfo"
                 }
             },
             {
-                $unwind: "$boutiqueInfo"
+                $unwind: "$locationInfo"
+            },
+            {
+                $lookup: {
+                    from: "boxe",
+                    localField: "locationInfo.idBoxe",
+                    foreignField: "_id",
+                    as: "boxeInfo"
+                }
+            },
+            {
+                $unwind: "$boxeInfo"
+            },
+            {
+                $lookup: {
+                    from: "proprietaire",
+                    localField: "locationInfo.idProprietaire",
+                    foreignField: "_id",
+                    as: "proprietaireInfo"
+                }
+            },
+            {
+                $unwind: "$proprietaireInfo"
+            },
+            {
+                $lookup: {
+                    from: "boutique",
+                    localField: "locationInfo.idBoutique",
+                    foreignField: "_id",
+                    as: "boutiqueInfo"
+                }
             },
             {
                 $project: {
@@ -207,6 +306,9 @@ exports.getCplByIdBoutique = async (req, res) => {
                     montant: 1,
                     status:1,
                     date: 1,
+                    location:"$locationInfo",
+                    boxe:"$boxeInfo",
+                    proprietaire:"$proprietaireInfo",
                     boutique:"$boutiqueInfo",
                     centreCommercial:"$centreInfo"
                 }
@@ -226,18 +328,18 @@ exports.getCplByIdProprietaire = async (req, res) => {
         const result = await PaymentLoyer.aggregate([
             {
                 $lookup: {
-                    from: "boutique",
+                    from: "location_boxe",
                     localField: "idBoutique",
                     foreignField: "_id",
-                    as: "boutiqueInfo"
+                    as: "locationInfo"
                 }
             },
             {
-                $unwind: "$boutiqueInfo"
+                $unwind: "$locationInfo"
             },
             {
                 $match: {
-                    "boutiqueInfo.idProprietaire": id
+                    "locationInfo.idProprietaire": id
                 }
             },
             {
@@ -252,6 +354,36 @@ exports.getCplByIdProprietaire = async (req, res) => {
                 $unwind: "$centreInfo"
             },
             {
+                $lookup: {
+                    from: "boxe",
+                    localField: "locationInfo.idBoxe",
+                    foreignField: "_id",
+                    as: "boxeInfo"
+                }
+            },
+            {
+                $unwind: "$boxeInfo"
+            },
+            {
+                $lookup: {
+                    from: "proprietaire",
+                    localField: "locationInfo.idProprietaire",
+                    foreignField: "_id",
+                    as: "proprietaireInfo"
+                }
+            },
+            {
+                $unwind: "$proprietaireInfo"
+            },
+            {
+                $lookup: {
+                    from: "boutique",
+                    localField: "locationInfo.idBoutique",
+                    foreignField: "_id",
+                    as: "boutiqueInfo"
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     idCentreCommercial:1,
@@ -261,6 +393,9 @@ exports.getCplByIdProprietaire = async (req, res) => {
                     montant: 1,
                     status:1,
                     date: 1,
+                    location:"$locationInfo",
+                    boxe:"$boxeInfo",
+                    proprietaire:"$proprietaireInfo",
                     boutique:"$boutiqueInfo",
                     centreCommercial:"$centreInfo"
                 }
@@ -284,11 +419,12 @@ exports.valider = async (req, res) => {
         item.status = status;
         await item.save();
 
-        const boutique = await Boutique.findById(item.idBoutique);
+        const location = await LocationBoxe.findById(item.idBoutique);
+        const boxe = await Boxe.findById(location.idBoxe);
         const notification = new Notification({
-            idUser: boutique.idProprietaire,
+            idUser: location.idProprietaire,
             title: "Payment accepté",
-            message: `Votre paiement de loyer du mois de ${item.mois} pour la boutique ${boutique.nom} a été accepté.`,
+            message: `Votre paiement de loyer du mois de ${item.mois} pour le boxe ${boxe.nom} a été accepté.`,
             lien: `owner/payment_loyer/details/${item._id}`,
             badge: "<div class=\"notification-icon\" style=\"background-color: #dcfce7;color: #22c55e;\">\n" +
                 "                    <i class=\"fa fa-check-circle\"></i>\n" +
@@ -311,11 +447,12 @@ exports.rejeter = async (req, res) => {
 
         item.status = status;
         await item.save();
-        const boutique = await Boutique.findById(item.idBoutique);
+        const location = await LocationBoxe.findById(item.idBoutique);
+        const boxe = await Boxe.findById(location.idBoxe);
         const notification = new Notification({
-            idUser: boutique.idProprietaire,
+            idUser: location.idProprietaire,
             title: "Payment rejetée",
-            message: `Votre paiement de loyer du mois de ${item.mois} pour la boutique ${boutique.nom} a été rejeté.`,
+            message: `Votre paiement de loyer du mois de ${item.mois} pour le boxe ${boxe.nom} a été rejeté.`,
             lien: `owner/payment_loyer/details/${item._id}`,
             badge: "<div class=\"notification-icon\" style=\"background-color: #fee2e2;color: #ef4444;\">\n" +
                 "                    <i class=\"fa fa-times-circle\"></i>\n" +

@@ -5,7 +5,7 @@ const itemController = require("../../controllers/proprietaire/Proprietaire.cont
 router.post("/", itemController.create);
 router.get("/", itemController.getAll);
 router.get("/:id", itemController.getById);
-// router.put("/:id", itemController.update);
+router.put("/:id", itemController.update);
 // router.delete("/:id", itemController.delete);
 
 module.exports = router;
