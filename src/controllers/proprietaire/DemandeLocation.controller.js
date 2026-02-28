@@ -349,7 +349,8 @@ exports.accepterDemande = async (req, res) => {
 
         const locationBody = {
             idProprietaire: item.idProprietaire,
-            idBoxe: offre.idBoxe
+            idBoxe: offre.idBoxe,
+            loyer: item.montantLoyer
         }
         const newLocation = new LocationBoxe(locationBody);
         await newLocation.save();
@@ -366,7 +367,10 @@ exports.accepterDemande = async (req, res) => {
         });
         await notification.save();
 
-        res.json(item);
+        res.json({
+            ...item,
+            idLocation : newLocation._id
+        });
     } catch (err) {
         res.status(500).json({ error: err.message });
     }

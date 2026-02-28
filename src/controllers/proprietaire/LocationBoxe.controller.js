@@ -24,6 +24,35 @@ exports.update = async (req, res) => {
             old_boutique.status = 3;
             await old_boutique.save();
         }
+        let message = "";
+        const boxe = await Boxe.findById(item.idBoxe);
+        if (item.loyer!==req.body.loyer){
+            message = "Le loyer pour le boxe "+boxe.nom+" a été modifié de " + item.loyer + " à " + req.body.loyer + ". ";
+        }
+        if (item.echeance_payment!==req.body.echeance_payment){
+            message += "L'échéance de paiement pour le boxe "+boxe.nom+" a été modifiée de " + item.echeance_payment + " eme jour du mois à " + req.body.echeance_payment + " eme jour. ";
+        }
+        if (item.date_expiration){
+            if (item.date_expiration.getTime()!==new Date(req.body.date_expiration).getTime()){
+                message += "La date d'expiration pour la location de boxe "+boxe.nom+" a été modifiée de " + item.date_expiration.toLocaleDateString() + " à " + new Date(req.body.date_expiration).toLocaleDateString() + ". ";
+            }
+        }
+        if (!item.date_expiration && req.body.date_expiration){
+            message += "La date d'expiration pour la location de boxe "+boxe.nom+" a été modifiée à " + new Date(req.body.date_expiration).toLocaleDateString() + ". ";
+        }
+
+        if (message!==""){
+            const notification = new Notification({
+                idUser: item.idProprietaire,
+                title: "Changement de contrat de location",
+                message: message,
+                lien: `owner/location_boxe/details/${item._id}`,
+                badge: "<div class=\"notification-icon\" style=\"background-color: #dbeafe;color: #3b82f6;\">\n" +
+                    "                    <i class=\"fa fa-info-circle\"></i>\n" +
+                    "                  </div>",
+            });
+            await notification.save();
+        }
         item = await LocationBoxe.findByIdAndUpdate(req.params.id, req.body, { new: true });
         if (!item) return res.status(404).json({ message: "Item introuvable" });
         if (item.idBoutique){
@@ -120,6 +149,9 @@ exports.getCPLById = async (req, res) => {
                     idBoxe: 1,
                     idProprietaire: 1,
                     idBoutique: 1,
+                    loyer: 1,
+                    echeance_payment: 1,
+                    date_expiration: 1,
                     status: 1,
                     date:1,
                     proprietaire:"$proprietaireInfo",
@@ -202,6 +234,9 @@ exports.getCPLByIdCentreCommercial = async (req, res) => {
                     idBoxe: 1,
                     idProprietaire: 1,
                     idBoutique: 1,
+                    loyer: 1,
+                    echeance_payment: 1,
+                    date_expiration: 1,
                     status: 1,
                     date:1,
                     proprietaire:"$proprietaireInfo",
@@ -281,6 +316,9 @@ exports.getCPLByIdProprietaire = async (req, res) => {
                     idBoxe: 1,
                     idProprietaire: 1,
                     idBoutique: 1,
+                    loyer: 1,
+                    echeance_payment: 1,
+                    date_expiration: 1,
                     status: 1,
                     date:1,
                     proprietaire:"$proprietaireInfo",
@@ -413,6 +451,9 @@ exports.getCPLByIdBoxe = async (req, res) => {
                     idBoxe: 1,
                     idProprietaire: 1,
                     idBoutique: 1,
+                    loyer: 1,
+                    echeance_payment: 1,
+                    date_expiration: 1,
                     status: 1,
                     date:1,
                     proprietaire:"$proprietaireInfo",
@@ -493,6 +534,9 @@ exports.getCPLByIdProprietaireAndDisponible = async (req, res) => {
                     idBoxe: 1,
                     idProprietaire: 1,
                     idBoutique: 1,
+                    loyer: 1,
+                    echeance_payment: 1,
+                    date_expiration: 1,
                     status: 1,
                     date:1,
                     proprietaire:"$proprietaireInfo",

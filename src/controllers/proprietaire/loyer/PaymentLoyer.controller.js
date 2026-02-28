@@ -121,6 +121,12 @@ exports.getCplById = async (req, res) => {
                 }
             },
             {
+                $unwind: {
+                    path: "$boutiqueInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     idCentreCommercial:1,
@@ -206,6 +212,12 @@ exports.getCplByIdCentreCommercial = async (req, res) => {
                     localField: "locationInfo.idBoutique",
                     foreignField: "_id",
                     as: "boutiqueInfo"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$boutiqueInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
                 }
             },
             {
@@ -297,6 +309,12 @@ exports.getCplByIdBoutique = async (req, res) => {
                 }
             },
             {
+                $unwind: {
+                    path: "$boutiqueInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
+            },
+            {
                 $project: {
                     _id: 1,
                     idCentreCommercial:1,
@@ -381,6 +399,12 @@ exports.getCplByIdProprietaire = async (req, res) => {
                     localField: "locationInfo.idBoutique",
                     foreignField: "_id",
                     as: "boutiqueInfo"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$boutiqueInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
                 }
             },
             {
