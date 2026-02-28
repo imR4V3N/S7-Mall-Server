@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const parkingController = require("../../controllers/centre_commercial/parking.controller");
+const parkingController = require("../../controllers/centre_commercial/Parking.controller");
 
 router.post("/", parkingController.create);
 router.get("/", parkingController.getAll);

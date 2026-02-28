@@ -1,7 +1,7 @@
 const express = require("express");
 const router = express.Router();
 
-const controller = require("../../controllers/authentification/role.controller");
+const controller = require("../../controllers/authentification/Role.controller");
 
 router.post("/", controller.create);
 router.get("/", controller.findAll);
