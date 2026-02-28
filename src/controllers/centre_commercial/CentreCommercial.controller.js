@@ -3,6 +3,8 @@ const Authentification = require("../../models/authentification/Authentification
 const Role = require("../../models/authentification/Role.model");
 const mongoose = require("mongoose");
 const Boutique = require("../../models/proprietaire/Boutique.model");
+const LocationBoxe = require("../../models/proprietaire/LocationBoxe.model");
+const BonDeCommande = require("../../models/client/commande/BonDeCommande.model");
 // Créer un centre commercial
 exports.createCentre = async (req, res) => {
     try {
@@ -186,6 +188,163 @@ exports.getCPLById = async (req, res) => {
             res.status(404).json({message:"Item introuvable"})
         }
         res.json(result[0]);
+
+    } catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+};
+
+exports.getRepartitionLoyerMensuel = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        let months = ["Janvier","Février","Mars","Avril","Mai","Juin","Juillet","Août","Septembre","Octobre","Novembre","Décembre"];
+        const now = new Date();
+        const currentMois = months[now.getMonth()];
+        const currentAnnee = now.getFullYear();
+
+        let agg = await LocationBoxe.aggregate([
+            {
+                $lookup: {
+                    from: "boxe",
+                    localField: "idBoxe",
+                    foreignField: "_id",
+                    as: "boxeInfo"
+                }
+            },
+            { $unwind: "$boxeInfo" },
+            { $match: { "boxeInfo.idCentreCommercial": id } },
+            {
+                $lookup: {
+                    from: "payment_loyer",
+                    let: { boutiqueId: "$_id" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$idBoutique", "$$boutiqueId"] },
+                                        { $eq: ["$mois", currentMois] },
+                                        { $eq: ["$annee", currentAnnee] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
+                    as: "payments"
+                }
+            },
+            {
+                $addFields: {
+                    paidSum: {
+                        $sum: {
+                            $map: {
+                                input: { $filter: { input: "$payments", as: "p", cond: { $eq: ["$$p.status", 11] } } },
+                                as: "pp",
+                                in: "$$pp.montant"
+                            }
+                        }
+                    },
+                    unpaidSum: {
+                        $sum: {
+                            $map: {
+                                input: { $filter: { input: "$payments", as: "p", cond: { $ne: ["$$p.status", 11] } } },
+                                as: "pp",
+                                in: "$$pp.montant"
+                            }
+                        }
+                    },
+                    hasPayment: { $gt: [{ $size: "$payments" }, 0] }
+                }
+            },
+            {
+                $addFields: {
+                    unpaidForBoutique: {
+                        $cond: [
+                            "$hasPayment",
+                            "$unpaidSum",
+                            { $ifNull: ["$loyer", 0] }
+                        ]
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: null,
+                    TotalPayer: { $sum: "$paidSum" },
+                    TotalNonPayer: { $sum: "$unpaidForBoutique" }
+                }
+            }
+        ]);
+
+        const result = (agg && agg.length > 0) ? { TotalPayer: agg[0].TotalPayer || 0, TotalNonPayer: agg[0].TotalNonPayer || 0 } : { TotalPayer: 0, TotalNonPayer: 0 };
+        res.json(result);
+
+    } catch (err) {
+        res.status(500).json({ message: err.message });
+    }
+};
+
+exports.getNombreVisiteur = async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const result = await BonDeCommande.aggregate([
+            {
+                $lookup: {
+                    from: "client",
+                    localField: "idClient",
+                    foreignField: "_id",
+                    as: "clientInfo"
+                }
+            },
+            {
+                $unwind: "$clientInfo"
+            },
+            {
+                $lookup: {
+                    from: "boutique",
+                    localField: "idBoutique",
+                    foreignField: "_id",
+                    as: "boutiqueInfo"
+                }
+            },
+            {
+                $unwind: "$boutiqueInfo"
+            },
+            {
+                $lookup: {
+                    from: "boxe",
+                    localField: "boutiqueInfo.idBoxe",
+                    foreignField: "_id",
+                    as: "boxeInfo"
+                }
+            },
+            {
+                $unwind: "$boxeInfo"
+            },
+            {
+               $match: {
+                    "boxeInfo.idCentreCommercial": id
+               }
+            },
+            {
+                $project: {
+                    _id: 1,
+                    idClient:1,
+                    idCommande: 1,
+                    idBoutique: 1,
+                    designation: 1,
+                    status: 1,
+                    date: 1,
+                    client: "$clientInfo",
+                    boutique: "$boutiqueInfo",
+                    boxe: "$boxeInfo"
+                }
+            }
+        ]);
+
+        res.json(result);
 
     } catch (err) {
         res.status(500).json({ error: err.message });

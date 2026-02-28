@@ -19,6 +19,17 @@ const locationBoxeSchema = new mongoose.Schema(
         idBoutique: {
             type: String
         },
+        loyer: {
+            type: Number,
+            default: 0
+        },
+        echeance_payment: {
+            type: Number,
+            default: 15
+        },
+        date_expiration: {
+            type: Date,
+        },
         status: {
             type: Number,
             default: 1

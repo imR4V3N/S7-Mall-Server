@@ -15,5 +15,7 @@ router.put("/:id", controller.update);
 router.get("/ouvrir/:id", controller.ouvrir);
 router.get("/fermer/:id", controller.fermer);
 router.get("/details/:id", controller.getCPLById);
+router.get("/etatLoyer/:id", controller.getRepartitionLoyerMensuel);
+router.get("/visiteurs/:id", controller.getNombreVisiteur);
 
 module.exports = router;
