@@ -1,4 +1,4 @@
-const CentreCommercial = require("../../models/centre_commercial/centreCommercial.model");
+const CentreCommercial = require("../../models/centre_commercial/CentreCommercial.model");
 const Authentification = require("../../models/authentification/Authentification.model");
 const Role = require("../../models/authentification/Role.model");
 const mongoose = require("mongoose");
