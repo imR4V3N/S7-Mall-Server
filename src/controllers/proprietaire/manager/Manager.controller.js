@@ -122,7 +122,10 @@ exports.getAllByIdProprietaire = async (req, res) => {
                 }
             },
             {
-                $unwind: "$boxeInfo"
+                $unwind: {
+                    path: "$boxeInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $lookup: {
@@ -133,7 +136,10 @@ exports.getAllByIdProprietaire = async (req, res) => {
                 }
             },
             {
-                $unwind: "$centreInfo"
+                $unwind: {
+                    path: "$centreInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $project: {
@@ -199,7 +205,10 @@ exports.getCPLById = async (req, res) => {
                 }
             },
             {
-                $unwind: "$boxeInfo"
+                $unwind: {
+                    path: "boxeInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $lookup: {
@@ -210,7 +219,10 @@ exports.getCPLById = async (req, res) => {
                 }
             },
             {
-                $unwind: "$centreInfo"
+                $unwind: {
+                    path: "$centreInfo",
+                    preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
+                }
             },
             {
                 $project: {
