@@ -206,7 +206,7 @@ exports.getCPLById = async (req, res) => {
             },
             {
                 $unwind: {
-                    path: "boxeInfo",
+                    path: "$boxeInfo",
                     preserveNullAndEmptyArrays: true  // Important pour les boutiques sans boxe
                 }
             },
